@@ -186,6 +186,8 @@ function nuevoPlano(){
  lados=[];
  puntos=[{x:0,y:0}];
  puertas=[];
+ ventanas=[];
+document.getElementById("listaVentanas").innerHTML="";
  cerrado=false;
 
  document.getElementById("listaPuertas").innerHTML="";
@@ -348,6 +350,32 @@ function dibujar3D(){
    ctx.lineWidth=2;
    ctx.stroke();
   });
+  ventanas.filter(v=>v.pared===i).forEach(v=>{
+ let t0=v.posicion/lados[i].m;
+ let t1=(v.posicion+v.ancho)/lados[i].m;
+
+ let x0=a.x+(b.x-a.x)*t0;
+ let y0=a.y+(b.y-a.y)*t0;
+
+ let x1=a.x+(b.x-a.x)*t1;
+ let y1=a.y+(b.y-a.y)*t1;
+
+ let alturaVentana=v.altura*escala;
+ let altoVentana=v.alto*escala;
+
+ ctx.beginPath();
+ ctx.moveTo(x0,y0-alturaVentana);
+ ctx.lineTo(x1,y1-alturaVentana);
+ ctx.lineTo(x1,y1-alturaVentana-altoVentana);
+ ctx.lineTo(x0,y0-alturaVentana-altoVentana);
+ ctx.closePath();
+
+ ctx.fillStyle="#70c7e8";
+ ctx.fill();
+ ctx.strokeStyle="#ffffff";
+ ctx.lineWidth=2;
+ ctx.stroke();
+});
  }
 
  ctx.fillStyle="#0879d1";

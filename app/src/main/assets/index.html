@@ -164,6 +164,32 @@ function agregarVentana(){
 
  dibujar3D();
 }
+ function actualizarListaPuertas(){
+ let lista=document.getElementById("listaPuertas");
+ lista.innerHTML="";
+
+ puertas.forEach((p,i)=>{
+  let item=document.createElement("div");
+  item.className="item";
+
+  let texto=document.createElement("span");
+  texto.textContent="Puerta en pared "+(p.pared+1)+
+   " | Ancho: "+p.ancho+" m | Alto: "+p.alto+
+   " m | Posición: "+p.posicion+" m ";
+
+  let boton=document.createElement("button");
+  boton.textContent="Eliminar";
+  boton.onclick=function(){
+   puertas.splice(i,1);
+   actualizarListaPuertas();
+   dibujar3D();
+  };
+
+  item.appendChild(texto);
+  item.appendChild(boton);
+  lista.appendChild(item);
+ });
+ }
  function agregarPuerta(){
  let pared=Number(document.getElementById("puertaPared").value)-1;
  let ancho=Number(document.getElementById("puertaAncho").value);
@@ -187,13 +213,30 @@ function agregarVentana(){
 
  puertas.push({pared,ancho,alto,posicion});
 
- let lista=document.getElementById("listaPuertas");
+let lista=document.getElementById("listaPuertas");
+lista.innerHTML="";
+
+puertas.forEach((p,i)=>{
  let item=document.createElement("div");
  item.className="item";
- item.textContent="Puerta en pared "+(pared+1)+
-  " | Ancho: "+ancho+" m | Alto: "+alto+
-  " m | Posición: "+posicion+" m";
+
+ let texto=document.createElement("span");
+ texto.textContent="Puerta en pared "+(p.pared+1)+
+  " | Ancho: "+p.ancho+" m | Alto: "+p.alto+
+  " m | Posición: "+p.posicion+" m ";
+
+ let boton=document.createElement("button");
+ boton.textContent="Eliminar";
+ boton.onclick=function(){
+  puertas.splice(i,1);
+  actualizarListaPuertas();
+  dibujar3D();
+ };
+
+ item.appendChild(texto);
+ item.appendChild(boton);
  lista.appendChild(item);
+});
  dibujar3D();
  alert("Puerta agregada correctamente.");
  }

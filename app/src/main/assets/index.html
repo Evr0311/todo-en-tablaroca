@@ -77,6 +77,10 @@ function agregarLado(){
  if(cerrado){alert("Inicia un nuevo diseño.");return}
  let m=Number(document.getElementById("medida").value);
  let ang=Number(document.getElementById("direccion").value);
+if(!Number.isFinite(ang)||ang<0||ang>359){
+ alert("Introduce un ángulo entre 0 y 359 grados.");
+ return;
+}
  if(!Number.isFinite(m)||m<=0){alert("Introduce una medida válida.");return}
  let rad=ang*Math.PI/180;
  let anterior=puntos[puntos.length-1];

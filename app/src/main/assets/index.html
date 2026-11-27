@@ -130,6 +130,32 @@ if(!Number.isFinite(ang)||ang<0||ang>359){
  document.getElementById("medida").value="";
  actualizar();
 }
+ function actualizarListaVentanas(){
+ let lista=document.getElementById("listaVentanas");
+ lista.innerHTML="";
+
+ ventanas.forEach((v,i)=>{
+  let item=document.createElement("div");
+  item.className="item";
+
+  let texto=document.createElement("span");
+  texto.textContent="Ventana en pared "+(v.pared+1)+
+   " | Ancho: "+v.ancho+" m | Alto: "+v.alto+
+   " m | Posición: "+v.posicion+" m | Altura: "+v.altura+" m ";
+
+  let boton=document.createElement("button");
+  boton.textContent="Eliminar";
+  boton.onclick=function(){
+   ventanas.splice(i,1);
+   actualizarListaVentanas();
+   dibujar3D();
+  };
+
+  item.appendChild(texto);
+  item.appendChild(boton);
+  lista.appendChild(item);
+ });
+ }
 function agregarVentana(){
  let pared=Number(document.getElementById("ventanaPared").value)-1;
  let ancho=Number(document.getElementById("ventanaAncho").value);
@@ -155,13 +181,29 @@ function agregarVentana(){
  ventanas.push({pared,ancho,alto,posicion,altura});
 
  let lista=document.getElementById("listaVentanas");
+lista.innerHTML="";
+
+ventanas.forEach((v,i)=>{
  let item=document.createElement("div");
  item.className="item";
- item.textContent="Ventana en pared "+(pared+1)+
-  " | Ancho: "+ancho+" m | Alto: "+alto+
-  " m | Posición: "+posicion+" m | Altura: "+altura+" m";
- lista.appendChild(item);
 
+ let texto=document.createElement("span");
+ texto.textContent="Ventana en pared "+(v.pared+1)+
+  " | Ancho: "+v.ancho+" m | Alto: "+v.alto+
+  " m | Posición: "+v.posicion+" m | Altura: "+v.altura+" m ";
+
+ let boton=document.createElement("button");
+ boton.textContent="Eliminar";
+ boton.onclick=function(){
+  ventanas.splice(i,1);
+  actualizarListaVentanas();
+  dibujar3D();
+ };
+
+ item.appendChild(texto);
+ item.appendChild(boton);
+ lista.appendChild(item);
+});
  dibujar3D();
 }
  function actualizarListaPuertas(){

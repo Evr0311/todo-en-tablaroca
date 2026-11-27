@@ -56,6 +56,22 @@ canvas{width:100%;background:#f4f6fa;border-radius:8px;touch-action:none}
 </div>
 
 <div class="panel">
+ <h2>Puertas</h2>
+
+<label>Pared donde irá la puerta (número de lado)</label>
+<input id="puertaPared" type="number" min="1" value="1">
+
+<label>Ancho de puerta (metros)</label>
+<input id="puertaAncho" type="number" value="0.90" step="0.01">
+
+<label>Alto de puerta (metros)</label>
+<input id="puertaAlto" type="number" value="2.10" step="0.01">
+
+<label>Distancia desde el inicio de la pared (metros)</label>
+<input id="puertaPosicion" type="number" value="0.50" step="0.01">
+
+<button onclick="agregarPuerta()">Agregar puerta</button>
+<div id="listaPuertas"></div>
 <h2>4. Vista 3D preliminar</h2>
 <label>Altura de paredes (metros)</label>
 <input id="altura" type="number" value="2.40" step="0.01">
@@ -72,6 +88,7 @@ canvas{width:100%;background:#f4f6fa;border-radius:8px;touch-action:none}
 let lados=[];
 let puntos=[{x:0,y:0}];
 let cerrado=false;
+let puertas=[];
 
 function agregarLado(){
  if(cerrado){alert("Inicia un nuevo diseño.");return}
@@ -94,6 +111,39 @@ if(!Number.isFinite(ang)||ang<0||ang>359){
  actualizar();
 }
 
+ function agregarPuerta(){
+ let pared=Number(document.getElementById("puertaPared").value)-1;
+ let ancho=Number(document.getElementById("puertaAncho").value);
+ let alto=Number(document.getElementById("puertaAlto").value);
+ let posicion=Number(document.getElementById("puertaPosicion").value);
+
+ if(!Number.isInteger(pared)||pared<0||pared>=lados.length){
+  alert("Selecciona una pared válida.");
+  return;
+ }
+
+ if(ancho<=0||alto<=0||posicion<0){
+  alert("Revisa las medidas de la puerta.");
+  return;
+ }
+
+ if(posicion+ancho>lados[pared].m){
+  alert("La puerta no cabe en esa pared.");
+  return;
+ }
+
+ puertas.push({pared,ancho,alto,posicion});
+
+ let lista=document.getElementById("listaPuertas");
+ let item=document.createElement("div");
+ item.className="item";
+ item.textContent="Puerta en pared "+(pared+1)+
+  " | Ancho: "+ancho+" m | Alto: "+alto+
+  " m | Posición: "+posicion+" m";
+ lista.appendChild(item);
+ dibujar3D();
+ alert("Puerta agregada correctamente.");
+ }
  function cerrarPlano(){
  const primero = puntos[0];
  const ultimo = puntos[puntos.length-1];
@@ -135,7 +185,11 @@ function deshacer(){
 function nuevoPlano(){
  lados=[];
  puntos=[{x:0,y:0}];
+ puertas=[];
  cerrado=false;
+
+ document.getElementById("listaPuertas").innerHTML="";
+
  actualizar();
 }
 
@@ -269,6 +323,31 @@ function dibujar3D(){
   ctx.strokeStyle="#243b53";
   ctx.lineWidth=3;
   ctx.stroke();
+    puertas.filter(p=>p.pared===i).forEach(p=>{
+   let t0=p.posicion/lados[i].m;
+   let t1=(p.posicion+p.ancho)/lados[i].m;
+
+   let x0=a.x+(b.x-a.x)*t0;
+   let y0=a.y+(b.y-a.y)*t0;
+
+   let x1=a.x+(b.x-a.x)*t1;
+   let y1=a.y+(b.y-a.y)*t1;
+
+   let alturaPuerta=Math.min(p.alto,altura/escala)*escala;
+
+   ctx.beginPath();
+   ctx.moveTo(x0,y0);
+   ctx.lineTo(x1,y1);
+   ctx.lineTo(x1,y1-alturaPuerta);
+   ctx.lineTo(x0,y0-alturaPuerta);
+   ctx.closePath();
+
+   ctx.fillStyle="#263449";
+   ctx.fill();
+   ctx.strokeStyle="#ffffff";
+   ctx.lineWidth=2;
+   ctx.stroke();
+  });
  }
 
  ctx.fillStyle="#0879d1";

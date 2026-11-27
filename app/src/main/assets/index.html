@@ -25,21 +25,13 @@ canvas{width:100%;background:#f4f6fa;border-radius:8px;touch-action:none}
 <body>
 <header>TODO EN TABLAROCA</header>
 <main>
-
 <div class="panel">
 <h2>1. Nuevo diseño</h2>
 <input id="proyecto" placeholder="Nombre del proyecto">
 <select id="tipo">
-<option>Muro</option>
-<option>División</option>
-<option>Plafón</option>
-<option>Forrado</option>
+<option>Muro</option><option>División</option>
+<option>Plafón</option><option>Forrado</option>
 <option>Diseño especial</option>
-</select>
-<label>Inicio del trazado</label>
-<select id="inicio">
-<option>Desde el suelo</option>
-<option>Desde una pared existente</option>
 </select>
 </div>
 
@@ -66,14 +58,12 @@ canvas{width:100%;background:#f4f6fa;border-radius:8px;touch-action:none}
 <div class="panel">
 <h2>3. Plano 2D</h2>
 <canvas id="plano" width="700" height="500"></canvas>
-<p>El plano muestra cada lado y su medida.</p>
 </div>
 
 <div class="panel">
 <h2>4. Vista 3D preliminar</h2>
 <label>Altura de paredes (metros)</label>
 <input id="altura" type="number" value="2.40" step="0.01">
-<button onclick="dibujar3D()">Actualizar 3D</button>
 <canvas id="vista3d" width="700" height="400"></canvas>
 </div>
 
@@ -81,54 +71,58 @@ canvas{width:100%;background:#f4f6fa;border-radius:8px;touch-action:none}
 <h2>5. Resumen del espacio</h2>
 <div id="resumen">Agrega los lados del espacio.</div>
 </div>
-
 </main>
 
 <script>
 let lados=[];
-let x=0,y=0;
 let puntos=[{x:0,y:0}];
 let cerrado=false;
 
 function agregarLado(){
- if(cerrado){alert("Inicia un nuevo diseño para continuar.");return}
+ if(cerrado){alert("Inicia un nuevo diseño.");return}
  let m=Number(document.getElementById("medida").value);
  let ang=Number(document.getElementById("direccion").value);
- if(!m||m<=0){alert("Introduce una medida válida.");return}
+ if(!Number.isFinite(m)||m<=0){alert("Introduce una medida válida.");return}
  let rad=ang*Math.PI/180;
- x+=m*Math.cos(rad);
- y+=m*Math.sin(rad);
+ let anterior=puntos[puntos.length-1];
+ let nuevo={
+  x:anterior.x+m*Math.cos(rad),
+  y:anterior.y-m*Math.sin(rad)
+ };
  lados.push({m,ang});
- puntos.push({x,y});
+ puntos.push(nuevo);
  document.getElementById("medida").value="";
  actualizar();
 }
 
 function cerrarPlano(){
- if(lados.length<3){alert("Se necesitan al menos 3 lados.");return}
- let primero=puntos[0],ultimo=puntos[puntos.length-1];
- let distancia=Math.hypot(primero.x-ultimo.x,primero.y-ultimo.y);
- if(distancia>0.05){
-  alert("El espacio no está cerrado. Ajusta las medidas y direcciones. Falta "+distancia.toFixed(2)+" metros.");
+ if(lados.length<3){
+  alert("Se necesitan al menos 3 lados.");
   return;
  }
+ let primero=puntos[0];
+ let ultimo=puntos[puntos.length-1];
+ let distancia=Math.hypot(primero.x-ultimo.x,primero.y-ultimo.y);
+ if(distancia>0.05){
+  alert("El espacio no coincide. Falta cerrar una distancia de "+distancia.toFixed(2)+" metros.");
+  return;
+ }
+ puntos[puntos.length-1]={x:primero.x,y:primero.y};
  cerrado=true;
  actualizar();
+ alert("Espacio cerrado correctamente.");
 }
 
 function deshacer(){
  if(!lados.length)return;
  lados.pop();
  puntos.pop();
- let p=puntos[puntos.length-1];
- x=p.x;y=p.y;
  cerrado=false;
  actualizar();
 }
 
 function nuevoPlano(){
  lados=[];
- x=0;y=0;
  puntos=[{x:0,y:0}];
  cerrado=false;
  actualizar();
@@ -153,13 +147,19 @@ function dibujar(){
  let ctx=c.getContext("2d");
  ctx.clearRect(0,0,c.width,c.height);
  if(puntos.length<2)return;
+
  let minX=Math.min(...puntos.map(p=>p.x));
  let maxX=Math.max(...puntos.map(p=>p.x));
  let minY=Math.min(...puntos.map(p=>p.y));
  let maxY=Math.max(...puntos.map(p=>p.y));
- let escala=Math.min(550/Math.max(maxX-minX,0.1),350/Math.max(maxY-minY,0.1));
- let px=p=>100+(p.x-minX)*escala;
- let py=p=>80+(p.y-minY)*escala;
+
+ let escala=Math.min(
+  550/Math.max(maxX-minX,0.1),
+  350/Math.max(maxY-minY,0.1)
+ );
+ let px=p=>75+(p.x-minX)*escala;
+ let py=p=>75+(p.y-minY)*escala;
+
  ctx.strokeStyle="#0879d1";
  ctx.lineWidth=5;
  ctx.beginPath();
@@ -169,16 +169,19 @@ function dibujar(){
  });
  if(cerrado)ctx.closePath();
  ctx.stroke();
+
  puntos.forEach((p,i)=>{
   ctx.fillStyle="#e33434";
   ctx.beginPath();
   ctx.arc(px(p),py(p),6,0,Math.PI*2);
   ctx.fill();
+
   if(i<lados.length){
    let q=puntos[i+1];
    ctx.fillStyle="#15263c";
    ctx.font="18px Arial";
-   ctx.fillText(lados[i].m.toFixed(2)+" m",(px(p)+px(q))/2,(py(p)+py(q))/2-12);
+   ctx.fillText(lados[i].m.toFixed(2)+" m",
+    (px(p)+px(q))/2,(py(p)+py(q))/2-12);
   }
  });
 }
@@ -187,8 +190,8 @@ function resumen(){
  let total=lados.reduce((s,l)=>s+l.m,0);
  document.getElementById("resumen").textContent=
  "Proyecto: "+(document.getElementById("proyecto").value||"Sin nombre")+
- "\nLados trazados: "+lados.length+
- "\nPerímetro: "+total.toFixed(2)+" metros"+
+ "\nLados: "+lados.length+
+ "\nPerímetro: "+total.toFixed(2)+" m"+
  "\nEstado: "+(cerrado?"Espacio cerrado":"Trazado abierto")+
  "\nAltura: "+document.getElementById("altura").value+" m";
 }
@@ -197,17 +200,28 @@ function dibujar3D(){
  let c=document.getElementById("vista3d");
  let ctx=c.getContext("2d");
  ctx.clearRect(0,0,c.width,c.height);
+
  let h=Number(document.getElementById("altura").value);
- if(!h||h<=0)return;
- let escala=65;
- let ox=130,oy=310;
+ if(!Number.isFinite(h)||h<=0)return;
+
+ let minX=Math.min(...puntos.map(p=>p.x));
+ let minY=Math.min(...puntos.map(p=>p.y));
+ let maxX=Math.max(...puntos.map(p=>p.x));
+ let maxY=Math.max(...puntos.map(p=>p.y));
+ let escala=Math.min(400/Math.max(maxX-minX,1),200/Math.max(maxY-minY,1),80);
  let alto=h*escala;
+ let ox=100,oy=310;
+
  ctx.strokeStyle="#243b53";
  ctx.lineWidth=3;
+
  for(let i=0;i<lados.length;i++){
   let a=puntos[i],b=puntos[i+1];
-  let ax=ox+a.x*escala,ay=oy+a.y*escala;
-  let bx=ox+b.x*escala,by=oy+b.y*escala;
+  let ax=ox+(a.x-minX)*escala;
+  let ay=oy+(a.y-minY)*escala;
+  let bx=ox+(b.x-minX)*escala;
+  let by=oy+(b.y-minY)*escala;
+
   ctx.fillStyle="#91b6d8";
   ctx.beginPath();
   ctx.moveTo(ax,ay-alto);
@@ -220,7 +234,7 @@ function dibujar3D(){
  }
  ctx.fillStyle="#0879d1";
  ctx.font="18px Arial";
- ctx.fillText("Representación preliminar de paredes",20,30);
+ ctx.fillText("Representación preliminar 3D",20,30);
 }
 
 document.getElementById("altura").addEventListener("input",()=>{

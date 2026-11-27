@@ -95,11 +95,35 @@ function agregarLado(){
  actualizar();
 }
 
-function cerrarPlano(){
- if(lados.length<3){
-  alert("Se necesitan al menos 3 lados.");
+ function cerrarPlano(){
+ const primero = puntos[0];
+ const ultimo = puntos[puntos.length-1];
+
+ if(lados.length < 3){
+  document.getElementById("resumen").textContent =
+   "Necesitas al menos 3 lados.";
   return;
  }
+
+ const distancia = Math.hypot(
+  primero.x-ultimo.x,
+  primero.y-ultimo.y
+ );
+
+ if(distancia > 0.05){
+  document.getElementById("resumen").textContent =
+   "Falta cerrar "+distancia.toFixed(2)+" metros.";
+  return;
+ }
+
+ puntos[puntos.length-1] = {...primero};
+ cerrado = true;
+
+ actualizar();
+
+ document.getElementById("resumen").textContent =
+  "¡ESPACIO CERRADO CORRECTAMENTE!";
+}
  let primero=puntos[0];
  let ultimo=puntos[puntos.length-1];
  let distancia=Math.hypot(primero.x-ultimo.x,primero.y-ultimo.y);

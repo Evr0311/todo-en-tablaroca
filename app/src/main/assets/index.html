@@ -39,13 +39,8 @@ canvas{width:100%;background:#f4f6fa;border-radius:8px;touch-action:none}
 <h2>2. Trazar paredes</h2>
 <label>Longitud del siguiente lado (metros)</label>
 <input id="medida" type="number" min="0.01" step="0.01" placeholder="Ej. 3.50">
-<label>Dirección</label>
-<select id="direccion">
-<option value="0">Derecha</option>
-<option value="90">Abajo</option>
-<option value="180">Izquierda</option>
-<option value="270">Arriba</option>
-</select>
+<label>Dirección (grados)</label>
+<input id="direccion" type="number" value="0" min="0" max="359" step="1">
 <div class="fila">
 <button onclick="agregarLado()">Agregar lado</button>
 <button onclick="cerrarPlano()">Cerrar espacio</button>

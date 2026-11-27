@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Todo En Tablaroca</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#101827;color:white;font-family:Arial,sans-serif}
+header{background:#0879d1;padding:18px;text-align:center;font-size:23px;font-weight:bold}
+main{padding:15px}
+h2{color:#53b5ff}
+button,select,input{padding:13px;border:0;border-radius:8px;font-size:16px}
+button{background:#0879d1;color:white;font-weight:bold}
+input,select{background:#263449;color:white;width:100%;margin:7px 0}
+.menu{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.menu button{min-height:75px}
+.panel{background:#1d2b40;padding:14px;border-radius:12px;margin-top:15px}
+canvas{width:100%;height:280px;background:#f1f4f8;border-radius:8px;touch-action:none}
+#resultado{white-space:pre-wrap;line-height:1.6}
+</style>
+</head>
+<body>
+<header>TODO EN TABLAROCA</header>
+<main>
+<h2>Diseñador y cotizador</h2>
+<div class="menu">
+<button onclick="seleccionar('Muro')">Muro</button>
+<button onclick="seleccionar('División')">División</button>
+<button onclick="seleccionar('Plafón')">Plafón</button>
+<button onclick="seleccionar('Forrado')">Forrado</button>
+<button onclick="seleccionar('Diseño especial')">Diseño especial</button>
+<button onclick="seleccionar('Presupuesto')">Presupuesto</button>
+</div>
+
+<div class="panel">
+<h2 id="titulo">Nuevo proyecto</h2>
+<label>Nombre del proyecto</label>
+<input id="proyecto" placeholder="Ej. Recámara">
+<label>Tipo de trabajo</label>
+<select id="tipo">
+<option>Muro</option>
+<option>División</option>
+<option>Plafón</option>
+<option>Forrado</option>
+<option>Diseño especial</option>
+</select>
+<label>Largo (metros)</label>
+<input id="largo" type="number" step="0.01" value="3">
+<label>Alto (metros)</label>
+<input id="alto" type="number" step="0.01" value="2.4">
+<label>Profundidad (metros)</label>
+<input id="profundidad" type="number" step="0.01" value="0.6">
+<label>Caras de tablaroca</label>
+<select id="caras">
+<option value="1">Una cara</option>
+<option value="2">Dos caras</option>
+</select>
+<label>Tipo de placa</label>
+<select id="placa">
+<option>Estándar</option>
+<option>Resistente a humedad</option>
+<option>Resistente al fuego</option>
+<option>CPVC tipo mármol</option>
+<option>Lambrín de CPVC</option>
+</select>
+<button onclick="calcular()">Calcular materiales</button>
+</div>
+
+<div class="panel">
+<h2>Diseño 2D</h2>
+<canvas id="plano" width="700" height="350"></canvas>
+<button onclick="limpiar()">Limpiar diseño</button>
+<p>Toca y arrastra para dibujar.</p>
+</div>
+
+<div class="panel">
+<h2>Vista 3D</h2>
+<canvas id="vista3d" width="700" height="350"></canvas>
+</div>
+
+<div class="panel">
+<h2>Resultado del presupuesto</h2>
+<div id="resultado">Ingresa las medidas y calcula.</div>
+</div>
+</main>
+
+<script>
+let tipoTrabajo="Muro";
+function seleccionar(t){
+ tipoTrabajo=t;
+ document.getElementById("tipo").value=t==="Presupuesto"?"Muro":t;
+ document.getElementById("titulo").textContent=t;
+ document.querySelector(".panel").scrollIntoView({behavior:"smooth"});
+}
+function calcular(){
+ let l=Number(document.getElementById("largo").value);
+ let h=Number(document.getElementById("alto").value);
+ let caras=Number(document.getElementById("caras").value);
+ let profundidad=Number(document.getElementById("profundidad").value);
+ let placa=document.getElementById("placa").value;
+ if(l<=0||h<=0||profundidad<0){
+  alert("Revisa las medidas");
+  return;
+ }
+ let area=l*h*caras;
+ let placas=Math.ceil(area/2.976);
+ let resultado=
+ "PROYECTO: "+document.getElementById("proyecto").value+
+ "\nTRABAJO: "+document.getElementById("tipo").value+
+ "\nPLACA: "+placa+
+ "\nÁREA: "+area.toFixed(2)+" m²"+
+ "\nPLACAS ESTIMADAS: "+placas+
+ "\nPROFUNDIDAD: "+profundidad+" m"+
+ "\n\nEstimación preliminar. Faltan perfiles, tornillos, anclajes y desperdicio.";
+ document.getElementById("resultado").textContent=resultado;
+}
+let canvas=document.getElementById("plano");
+let ctx=canvas.getContext("2d");
+let dibujando=false;
+canvas.addEventListener("pointerdown",e=>{
+ dibujando=true;
+ let r=canvas.getBoundingClientRect();
+ ctx.beginPath();
+ ctx.moveTo((e.clientX-r.left)*canvas.width/r.width,(e.clientY-r.top)*canvas.height/r.height);
+});
+canvas.addEventListener("pointermove",e=>{
+ if(!dibujando)return;
+ let r=canvas.getBoundingClientRect();
+ ctx.lineTo((e.clientX-r.left)*canvas.width/r.width,(e.clientY-r.top)*canvas.height/r.height);
+ ctx.strokeStyle="#0879d1";
+ ctx.lineWidth=5;
+ ctx.stroke();
+});
+canvas.addEventListener("pointerup",()=>dibujando=false);
+canvas.addEventListener("pointerleave",()=>dibujando=false);
+function limpiar(){
+ ctx.clearRect(0,0,canvas.width,canvas.height);
+}
+function dibujar3D(){
+ let c=document.getElementById("vista3d");
+ let x=c.getContext("2d");
+ let l=Number(document.getElementById("largo").value);
+ let h=Number(document.getElementById("alto").value);
+ let p=Number(document.getElementById("profundidad").value);
+ x.clearRect(0,0,c.width,c.height);
+ let escala=Math.min(350/Math.max(l,h,p,1),100);
+ let a=l*escala,b=h*escala,d=p*escala;
+ let ox=180,oy=280;
+ x.fillStyle="#a6c9e8";
+ x.beginPath();
+ x.moveTo(ox,oy-b);x.lineTo(ox+a,oy-b);
+ x.lineTo(ox+a,oy);x.lineTo(ox,oy);x.closePath();x.fill();
+ x.fillStyle="#789fc4";
+ x.beginPath();
+ x.moveTo(ox+a,oy-b);x.lineTo(ox+a+d,oy-b-d/2);
+ x.lineTo(ox+a+d,oy-d/2);x.lineTo(ox+a,oy);x.closePath();x.fill();
+ x.fillStyle="#d5e6f5";
+ x.beginPath();
+ x.moveTo(ox,oy-b);x.lineTo(ox+d,oy-b-d/2);
+ x.lineTo(ox+a+d,oy-b-d/2);x.lineTo(ox+a,oy-b);x.closePath();x.fill();
+}
+["largo","alto","profundidad"].forEach(id=>{
+ document.getElementById(id).addEventListener("input",dibujar3D);
+});
+dibujar3D();
+</script>
+</body>
+</html>

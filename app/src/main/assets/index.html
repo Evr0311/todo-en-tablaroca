@@ -124,18 +124,6 @@ function agregarLado(){
  document.getElementById("resumen").textContent =
   "¡ESPACIO CERRADO CORRECTAMENTE!";
 }
- let primero=puntos[0];
- let ultimo=puntos[puntos.length-1];
- let distancia=Math.hypot(primero.x-ultimo.x,primero.y-ultimo.y);
- if(distancia>0.05){
-  alert("El espacio no coincide. Falta cerrar una distancia de "+distancia.toFixed(2)+" metros.");
-  return;
- }
- puntos[puntos.length-1]={x:primero.x,y:primero.y};
- cerrado=true;
- actualizar();
- alert("Espacio cerrado correctamente.");
-}
 
 function deshacer(){
  if(!lados.length)return;
